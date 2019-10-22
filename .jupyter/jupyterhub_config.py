@@ -159,9 +159,9 @@ class OpenShiftSpawner(KubeSpawner):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.single_user_services = []
-    self.single_user_profiles = SingleuserProfiles(server_url, client_secret)
+    self.single_user_profiles = SingleuserProfiles(server_url, client_secret, gpu_mode=os.environ.get('GPU_MODE'))
+    self.gpu_mode = self.single_user_profiles.gpu_mode
     self.deployment_size = None
-    self.gpu_privileged = True if os.environ.get('GPU_PRIVILEGED') else False
 
   def _options_form_default(self):
     imagestreams = oapi_client.resources.get(kind='ImageStream', api_version='image.openshift.io/v1')
@@ -243,9 +243,8 @@ class OpenShiftSpawner(KubeSpawner):
 
     GPU_KEY = "nvidia.com/gpu"
 
-    print("Num of GPUs: %s" % gpu)
     if int(gpu) > 0:
-        if self.gpu_privileged:
+        if self.gpu_mode and self.gpu_mode == self.single_user_profiles.GPU_MODE_PRIVILEGED:
             self.privileged = True
         else:
             self.privileged = False
@@ -260,8 +259,8 @@ class OpenShiftSpawner(KubeSpawner):
     else:
         if self.extra_resource_guarantees and self.extra_resource_guarantees.get(GPU_KEY):
             del self.extra_resource_guarantees[GPU_KEY]
-        if self.extra_resource_guarantees and self.extra_resource_limit.get(GPU_KEY):
-            del self.extra_resource_limit[GPU_KEY]
+        if self.extra_resource_limits and self.extra_resource_limits.get(GPU_KEY):
+            del self.extra_resource_limits[GPU_KEY]
         self.privileged = False
 
     data = {} #'AWS_ACCESS_KEY_ID': formdata['AWS_ACCESS_KEY_ID'][0], 'AWS_SECRET_ACCESS_KEY': formdata['AWS_SECRET_ACCESS_KEY'][0]
@@ -305,8 +304,11 @@ c.OpenShiftSpawner.modify_pod_hook = apply_pod_profile
 c.OpenShiftSpawner.cpu_limit = float(os.environ.get("SINGLEUSER_CPU_LIMIT", "1"))
 c.OpenShiftSpawner.mem_limit = os.environ.get("SINGLEUSER_MEM_LIMIT", "1G")
 c.OpenShiftSpawner.storage_pvc_ensure = True
-c.KubeSpawner.storage_capacity = '2Gi'
+c.KubeSpawner.storage_capacity = os.environ.get('SINGLEUSER_PVC_SIZE', '2Gi')
 c.KubeSpawner.pvc_name_template = '%s-nb-{username}-pvc' % os.environ['JUPYTERHUB_SERVICE_NAME']
 c.KubeSpawner.volumes = [dict(name='data', persistentVolumeClaim=dict(claimName=c.KubeSpawner.pvc_name_template))]
 c.KubeSpawner.volume_mounts = [dict(name='data', mountPath='/opt/app-root/src')]
 c.KubeSpawner.user_storage_class = os.environ.get("JUPYTERHUB_STORAGE_CLASS", c.KubeSpawner.user_storage_class)
+admin_users = os.environ.get('JUPYTERHUB_ADMIN_USERS')
+if admin_users:
+    c.Authenticator.admin_users = set(admin_users.split(','))
