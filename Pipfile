@@ -7,7 +7,7 @@ verify_ssl = true
 
 [packages]
 openshift = "==0.11.2"
-jupyterhub-singleuser-profile = {ref = "295638c623d73792aca6e5a961faa216c397a812",git = "https://github.com/opendatahub-io/jupyterhub-singleuser-profiles.git",editable = true}
+jupyterhub-singleuser-profile = {ref = "272f60ddc66944e546949d06e5eede7a5346e1ee",git = "https://github.com/vpavlin/jupyterhub-singleuser-profiles.git",editable = true}
 jupyter-publish-extension = {ref = "7cbf34e494fd9a0a79e9cd9a8c1d48a6775b9f49",git = "https://github.com/vpavlin/jupyter-publish-extension.git",editable = true}
 oauthenticator = {ref = "0ffd00dda420865c67f5ee8c849ad86e7c6b7ebc",git = "https://github.com/vpavlin/oauthenticator.git",editable = true}
 
