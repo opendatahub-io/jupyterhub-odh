@@ -22,7 +22,8 @@ public_service_dict = {
 public_service_dict.update(os.environ)
 jsp_api_dict = {
     'KUBERNETES_SERVICE_HOST': os.environ['KUBERNETES_SERVICE_HOST'],
-    'KUBERNETES_SERVICE_PORT': os.environ['KUBERNETES_SERVICE_PORT']
+    'KUBERNETES_SERVICE_PORT': os.environ['KUBERNETES_SERVICE_PORT'],
+    'JUPYTERHUB_LOGIN_URL': None
 }
 c.JupyterHub.services = [
                             {
@@ -106,6 +107,8 @@ from oauthenticator.openshift import OpenShiftOAuthenticator
 c.JupyterHub.authenticator_class = OpenShiftOAuthenticator
 c.Authenticator.auto_login = True
 c.Authenticator.enable_auth_state = True
+c.OpenShiftOAuthenticator.auth_refresh_age = 300
+c.OpenShiftOAuthenticator.refresh_pre_spawn = True
 
 # Override scope as oauthenticator code doesn't set it correctly.
 # Need to lodge a PR against oauthenticator to have this fixed.
@@ -169,6 +172,7 @@ if not host:
     raise RuntimeError('Cannot calculate external host name for JupyterHub.')
 
 c.OpenShiftOAuthenticator.oauth_callback_url = 'https://%s/hub/oauth_callback' % host
+jsp_api_dict['JUPYTERHUB_LOGIN_URL'] = 'https://%s/hub/login' % host
 
 from html.parser import HTMLParser
 
