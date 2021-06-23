@@ -45,6 +45,8 @@ if "PROMETHEUS_API_TOKEN" in os.environ:
 
 DEFAULT_MOUNT_PATH = '/opt/app-root/src'
 
+custom_notebook_namespace = os.environ.get('NOTEBOOK_NAMESPACE')
+
 c.KubeSpawner.singleuser_extra_containers = [
         {
             "name": "nbviewer",
@@ -238,7 +240,11 @@ class OpenShiftSpawner(KubeSpawner):
   def options_from_form(self, formdata):
     options = {}
     cm_data = self.single_user_profiles.user.get(self.user.name)
-    options['custom_image'] = cm_data['last_selected_image']
+    # custom_notebook_namespace = os.environ.get('NOTEBOOK_NAMESPACE')
+    if custom_notebook_namespace:
+        options['custom_image'] = f'image-registry.openshift-image-registry.svc:5000/{namespace}/%s' % cm_data['last_selected_image']
+    else:
+        options['custom_image'] = cm_data['last_selected_image']
     options['size'] = cm_data['last_selected_size']
     self.gpu_count = cm_data['gpu']
     self.image = options['custom_image']
@@ -269,6 +275,10 @@ c.OpenShiftSpawner.modify_pod_hook = apply_pod_profile
 c.OpenShiftSpawner.cpu_limit = float(os.environ.get("SINGLEUSER_CPU_LIMIT", "1"))
 c.OpenShiftSpawner.mem_limit = os.environ.get("SINGLEUSER_MEM_LIMIT", "1G")
 c.OpenShiftSpawner.storage_pvc_ensure = True
+
+if custom_notebook_namespace:
+    c.KubeSpawner.namespace = custom_notebook_namespace
+
 c.KubeSpawner.storage_capacity = os.environ.get('SINGLEUSER_PVC_SIZE', '2Gi')
 c.KubeSpawner.pvc_name_template = '%s-nb-{username}-pvc' % os.environ['JUPYTERHUB_SERVICE_NAME']
 c.KubeSpawner.volumes = [dict(name='data', persistentVolumeClaim=dict(claimName=c.KubeSpawner.pvc_name_template))]
