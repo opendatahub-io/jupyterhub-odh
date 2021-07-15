@@ -251,7 +251,14 @@ class OpenShiftSpawner(KubeSpawner):
 
     return options
 
+  def get_env(self):
+    env = super(OpenShiftSpawner, self).get_env()
 
+    if custom_notebook_namespace:
+      env['JUPYTERHUB_API_URL'] = f'http://{service_name}.{namespace}:8081/hub/api'
+      env['JUPYTERHUB_ACTIVITY_URL'] = f'http://{service_name}.{namespace}:8081/hub/api/users/{self.user.name}/activity'
+
+    return env
 
 def apply_pod_profile(spawner, pod):
   spawner.single_user_profiles.load_profiles(username=spawner.user.name)
