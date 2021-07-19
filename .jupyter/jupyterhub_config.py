@@ -15,22 +15,12 @@ c.JupyterHub.cleanup_servers = False
 
 import uuid
 c.ConfigurableHTTPProxy.auth_token = str(uuid.uuid4())
-public_service_dict = {
-                        'PROXY_TOKEN': c.ConfigurableHTTPProxy.auth_token,
-                        'PROXY_API_URL': 'http://%s:%d/' % ("127.0.0.1", 8082)
-                    }
-public_service_dict.update(os.environ)
 jsp_api_dict = {
     'KUBERNETES_SERVICE_HOST': os.environ['KUBERNETES_SERVICE_HOST'],
     'KUBERNETES_SERVICE_PORT': os.environ['KUBERNETES_SERVICE_PORT'],
     'JUPYTERHUB_LOGIN_URL': None
 }
 c.JupyterHub.services = [
-                            {
-                                'name': 'public',
-                                'command': ['bash', '-c', 'jupyter_publish_service'],
-                                'environment': public_service_dict
-                            },
                             {
                                 'name': 'jsp-api',
                                 'url': 'http://127.0.0.1:8181',
@@ -44,55 +34,6 @@ if "PROMETHEUS_API_TOKEN" in os.environ:
     c.JupyterHub.services.append(dict(name='prometheus', api_token=os.environ.get("PROMETHEUS_API_TOKEN")))
 
 DEFAULT_MOUNT_PATH = '/opt/app-root/src'
-
-c.KubeSpawner.singleuser_extra_containers = [
-        {
-            "name": "nbviewer",
-            "image": "nbviewer:latest",
-            "ports": [
-                {
-                    "containerPort": 9090,
-                    "protocol": "TCP"
-                }
-            ],
-            "env" : [
-                {
-                    "name": "NBVIEWER_LOCALFILES",
-                    "value": "/opt/app-root/src/public_notebooks"
-                },
-                {
-                    "name": "NBVIEWER_TEMPLATES",
-                    "value": "/opt/app-root/src"
-                },
-                {
-                    "name": "NBVIEWER_PORT",
-                    "value": "9090"
-                },
-                {
-                    "name": "JUPYTERHUB_SERVICE_PREFIX",
-                    "value": "/user/{username}/public/"
-                },
-                {
-                    "name": "CACHE_EXPIRY_MIN",
-                    "value": "30"
-                },
-                {
-                    "name": "CACHE_EXPIRY_MAX",
-                    "value": "60"
-                },
-                {
-                    "name": "NO_CACHE",
-                    "value": "true"
-                }
-            ],
-        "volumeMounts": [
-            {
-                "mountPath": DEFAULT_MOUNT_PATH,
-                "name": "data"
-            }
-        ]
-        }
-    ]
 
 
 # Work out the public server address for the OpenShift REST API. Don't

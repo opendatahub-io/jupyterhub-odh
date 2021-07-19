@@ -8,7 +8,6 @@ verify_ssl = true
 [packages]
 openshift = "==0.11.2"
 jupyterhub-singleuser-profiles = "==0.5.1"
-publish-service = {ref = "7cbf34e494fd9a0a79e9cd9a8c1d48a6775b9f49",git = "https://github.com/vpavlin/jupyter-publish-extension.git", editable = true}
 oauthenticator = {ref = "d98936da37569b7bb400c6854b07041dce3e7f87",git = "https://github.com/opendatahub-io/oauthenticator.git", editable = true}
 
 [requires]
