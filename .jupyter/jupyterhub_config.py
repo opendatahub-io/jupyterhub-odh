@@ -227,6 +227,7 @@ from kubespawner import KubeSpawner
 class OpenShiftSpawner(KubeSpawner):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
+    self.uid = None
     self.single_user_services = []
     self.single_user_profiles = SingleuserProfiles(gpu_mode=os.environ.get('GPU_MODE'), verify_ssl=verify_ssl)
     self.gpu_mode = self.single_user_profiles.gpu_mode
