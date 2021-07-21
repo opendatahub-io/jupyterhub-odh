@@ -1,0 +1,17 @@
+#!/bin/bash
+ENDPOINT="jupyterhub-ha-election"
+ME="$(cat /etc/hostname)"
+
+# Check the endpoint opened by the sidecar image gcr.io/google_containers/leader-elector:0.5.
+# The image will contain a JSON with the name of the leader
+function get_leader() {
+  echo "$(curl http://localhost:4040 2> /dev/null | python3 -c "import sys, json; print(json.load(sys.stdin)['name'])")"
+}
+
+until [ "${ME}" == "$(get_leader)" ]; do
+  echo "Waiting to become leader..."
+  sleep 6
+done
+
+echo "Assigned as new leader"
+exec /opt/app-root/builder/run
